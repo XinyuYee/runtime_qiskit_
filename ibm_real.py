@@ -113,7 +113,9 @@ if __name__ == "__main__":
         save_dict[i] = {
             'nosiy_ev': nosiy_ev
         }
-        json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
+        # json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
+    with open('save_dict.pkl', 'wb') as f:
+        pickle.dump(save_dict, f)
 
     # pubs = []
     # observable = SparsePauliOp("Z" * num_qubits)
@@ -138,5 +140,6 @@ if __name__ == "__main__":
     #         'nosiy_ev': pub_result.data.evs,
     #         'std_ev': pub_result.data.stds
     #     }
-    #     json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
+    # with open('save_dict.pkl', 'wb') as f:
+    #     pickle.dump(save_dict, f)
 
