@@ -41,27 +41,39 @@ if __name__ == "__main__":
     #### load train data
     circuits = []
     init_qubit = 5
-    inverse_data_cir = pickle.load(open('inversed_circ_dict_large.pkl', 'rb'))
-    init_data = pickle.load(open('select_train_init_data.pickle', 'rb'))
-    for i in range(test_num):  #init_data.keys():
-        print('This is the results for circ, ', i)
+    for i in range(test_num): 
         circ = QuantumCircuit(num_qubits)
-        # init circuit
-        inits = init_data[i]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
-        act_qubit = init_data[i]['act_qubit'] # random.sample(range(0, num_qubits), init_qubit)
+        inits = random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
+        act_qubit = random.sample(range(0, num_qubits), init_qubit)
         print(act_qubit)
         circ.compose(inits, qubits=act_qubit, inplace=True)
-        # load torr
-        circ_inver = inverse_data_cir[i]['circ']
-        # circ_inver.measure_all()
-        circ.compose(circ_inver, qubits=range(num_qubits), inplace=True)
         circuits.append(circ)
-        print(init_data[i]['gt'])
-        # tcirc = transpile(circ, simulator)
-        # result = simulator.run(tcirc).result()
-        # counts = result.get_counts()
-        # ideal_ev = expectation_value_fast(counts)
-        # print(ideal_ev, init_data[i]['gt'])
+    print(circuits)
+
+    #### load train data
+    # circuits = []
+    # init_qubit = 5
+    # inverse_data_cir = pickle.load(open('inversed_circ_dict_large.pkl', 'rb'))
+    # init_data = pickle.load(open('select_train_init_data.pickle', 'rb'))
+    # for i in range(test_num):  #init_data.keys():
+    #     print('This is the results for circ, ', i)
+    #     circ = QuantumCircuit(num_qubits)
+    #     # init circuit
+    #     inits = init_data[i]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
+    #     act_qubit = init_data[i]['act_qubit'] # random.sample(range(0, num_qubits), init_qubit)
+    #     print(act_qubit)
+    #     circ.compose(inits, qubits=act_qubit, inplace=True)
+    #     # load torr
+    #     circ_inver = inverse_data_cir[i]['circ']
+    #     # circ_inver.measure_all()
+    #     circ.compose(circ_inver, qubits=range(num_qubits), inplace=True)
+    #     circuits.append(circ)
+    #     print(init_data[i]['gt'])
+    #     # tcirc = transpile(circ, simulator)
+    #     # result = simulator.run(tcirc).result()
+    #     # counts = result.get_counts()
+    #     # ideal_ev = expectation_value_fast(counts)
+    #     # print(ideal_ev, init_data[i]['gt'])
 
     # #### load test data
     # circuits = []
