@@ -6,8 +6,9 @@ from qiskit.circuit.random import random_circuit
 import random
 import pickle
 import json
-from qiskit_ibm_runtime import QiskitRuntimeService, Sampler, Session, Options
-
+from qiskit_ibm_runtime import QiskitRuntimeService, Session, Options
+from qiskit_ibm_runtime import SamplerV2 as Sampler
+from qiskit_ibm_runtime import EstimatorV2 as Estimator
 # pip install qiskit-ibm-runtime
 # pip install qiskit
 
@@ -35,10 +36,10 @@ if __name__ == "__main__":
     # simulator = AerSimulator(method='matrix_product_state') 
 
     test_num = 2
+    num_qubits = 50
 
     #### load train data
     circuits = []
-    num_qubits = 50
     init_qubit = 5
     inverse_data_cir = pickle.load(open('inversed_circ_dict_large.pkl', 'rb'))
     init_data = pickle.load(open('select_train_init_data.pickle', 'rb'))
@@ -52,7 +53,7 @@ if __name__ == "__main__":
         circ.compose(inits, qubits=act_qubit, inplace=True)
         # load torr
         circ_inver = inverse_data_cir[i]['circ']
-        circ_inver.measure_all()
+        # circ_inver.measure_all()
         circ.compose(circ_inver, qubits=range(num_qubits), inplace=True)
         circuits.append(circ)
         print(init_data[i]['gt'])
@@ -76,28 +77,30 @@ if __name__ == "__main__":
     for backend_item in service.backends():
         if backend_item.name == 'ibm_brisbane':
             backend = backend_item
-    # backend = service.least_busy(operational = True, simlulator = False)
     print('backend:', backend.name)
-    options = Options(optimization_level=3, resilience_level=1)
-    jobs = []
-    
-    with Session(service=service, backend=backend):
-        sample = Sampler(options=options)
-        start_idx = 0
-        while start_idx < len(circuits):
-            end_idx = start_idx + min(backend.max_circuits, len(circuits) - start_idx)
-            jobs.append(sample.run(circuits[start_idx:end_idx]))#, shots=10000
-            start_idx = end_idx
+    # backend = service.least_busy(operational = True, simlulator = False)
 
-    results = [job.result() for job in jobs]
-    print(len(results))
+    pubs = []
+    observable = SparsePauliOp("Z" * num_qubits)
+    # Get ISA circuits
+    pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
+    for qc in circuits:
+        isa_circuit = pm.run(qc)
+        isa_obs = observable.apply_layout(isa_circuit.layout)
+        pubs.append((isa_circuit, isa_obs))
+    
+    estimator = Estimator(backend)
+    job = estimator.run(pubs)
+    job_result = job.result()
 
     save_dict = {}
     for i in range(test_num):
-        result = results[i]
-        state_counts = result.get_counts()
-        nosiy_ev = expectation_value_fast(state_counts)
+        pub_result = job_result[i]
+        print(f">>> Expectation values for PUB {i}: {pub_result.data.evs}")
+        print(f">>> Standard errors for PUB {i}: {pub_result.data.stds}")
+
         save_dict[i] = {
-            'nosiy_ev': nosiy_ev
+            'nosiy_ev': pub_result.data.evs,
+            'std_ev': pub_result.data.stds
         }
         json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
