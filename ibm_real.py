@@ -34,7 +34,7 @@ def expectation_value_fast(state_counts):
 if __name__ == "__main__":
     # simulator = AerSimulator(method='matrix_product_state') 
 
-    test_num = 4
+    test_num = 2
 
     #### load train data
     circuits = []
@@ -71,8 +71,12 @@ if __name__ == "__main__":
     #     circuits.append(circ)
     #     print(inverse_data_cir[i]['gt'])
 
-    service = QiskitRuntimeService(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
-    backend = service.least_busy(operational = True, simlulator = False)
+    service = QiskitRuntimeService.save_account(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
+    service = QiskitRuntimeService(instance='ibm-q/open/main')
+    for backend_item in service.backends():
+        if backend_item.name == 'ibm_brisbane':
+            backend = backend_item
+    # backend = service.least_busy(operational = True, simlulator = False)
     print('backend:', backend.name)
     options = Options(optimization_level=3, resilience_level=1)
     jobs = []
