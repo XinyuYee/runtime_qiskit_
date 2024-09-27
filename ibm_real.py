@@ -9,6 +9,9 @@ import json
 from qiskit_ibm_runtime import QiskitRuntimeService, Session, Options
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from qiskit_ibm_runtime import EstimatorV2 as Estimator
+from qiskit.quantum_info import SparsePauliOp
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+
 # pip install qiskit-ibm-runtime
 # pip install qiskit
 
@@ -92,27 +95,48 @@ if __name__ == "__main__":
     print('backend:', backend.name)
     # backend = service.least_busy(operational = True, simlulator = False)
 
-    pubs = []
-    observable = SparsePauliOp("Z" * num_qubits)
-    # Get ISA circuits
-    pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
-    for qc in circuits:
-        isa_circuit = pm.run(qc)
-        isa_obs = observable.apply_layout(isa_circuit.layout)
-        pubs.append((isa_circuit, isa_obs))
+    pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
+    isa_circuits = pm.run(circuits)
+    sampler = Sampler(backend)
+    job = sampler.run(isa_circuits)
+    result = job.result()
     
-    estimator = Estimator(backend)
-    job = estimator.run(pubs)
-    job_result = job.result()
+    for idx, pub_result in enumerate(result):
+        print(f" > Counts for pub {idx}: {pub_result.data.meas.get_counts()}")
 
     save_dict = {}
     for i in range(test_num):
-        pub_result = job_result[i]
-        print(f">>> Expectation values for PUB {i}: {pub_result.data.evs}")
-        print(f">>> Standard errors for PUB {i}: {pub_result.data.stds}")
-
+        pub_result = result[i]
+        print(f" > Counts for pub {i}: {pub_result.data.meas.get_counts()}")
+        state_counts = pub_result.data.meas.get_counts()
+        nosiy_ev = expectation_value_fast(state_counts)
         save_dict[i] = {
-            'nosiy_ev': pub_result.data.evs,
-            'std_ev': pub_result.data.stds
+            'nosiy_ev': nosiy_ev
         }
         json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
+
+    # pubs = []
+    # observable = SparsePauliOp("Z" * num_qubits)
+    # # Get ISA circuits
+    # pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
+    # for qc in circuits:
+    #     isa_circuit = pm.run(qc)
+    #     isa_obs = observable.apply_layout(isa_circuit.layout)
+    #     pubs.append((isa_circuit, isa_obs))
+    
+    # estimator = Estimator(backend)
+    # job = estimator.run(pubs)
+    # job_result = job.result()
+
+    # save_dict = {}
+    # for i in range(test_num):
+    #     pub_result = job_result[i]
+    #     print(f">>> Expectation values for PUB {i}: {pub_result.data.evs}")
+    #     print(f">>> Standard errors for PUB {i}: {pub_result.data.stds}")
+
+    #     save_dict[i] = {
+    #         'nosiy_ev': pub_result.data.evs,
+    #         'std_ev': pub_result.data.stds
+    #     }
+    #     json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
+
