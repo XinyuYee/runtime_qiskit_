@@ -50,6 +50,7 @@ if __name__ == "__main__":
         act_qubit = random.sample(range(0, num_qubits), init_qubit)
         print(act_qubit)
         circ.compose(inits, qubits=act_qubit, inplace=True)
+        circ.measure_all()
         circuits.append(circ)
     print(circuits)
 
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     #     circuits.append(circ)
     #     print(inverse_data_cir[i]['gt'])
 
-    service = QiskitRuntimeService.save_account(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
+    # service = QiskitRuntimeService.save_account(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
     service = QiskitRuntimeService(instance='ibm-q/open/main')
     for backend_item in service.backends():
         if backend_item.name == 'ibm_brisbane':
