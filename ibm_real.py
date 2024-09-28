@@ -1,7 +1,7 @@
 import numpy as np
 import qiskit
 from qiskit import QuantumCircuit, transpile
-from qiskit_aer import AerSimulator
+# from qiskit_aer import AerSimulator
 from qiskit.circuit.random import random_circuit
 import random
 import pickle
@@ -36,9 +36,9 @@ def expectation_value_fast(state_counts):
     return expectation_value
 
 if __name__ == "__main__":
-    simulator = AerSimulator(method='matrix_product_state') 
+    # simulator = AerSimulator(method='matrix_product_state') 
 
-    test_num = 20
+    test_num = 18
     train_num = 10
     num_qubits = 50
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # service = QiskitRuntimeService.save_account(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
     service = QiskitRuntimeService(instance='ibm-q/open/main')
     for backend_item in service.backends():
-        if backend_item.name == 'ibm_brisbane':
+        if backend_item.name == 'ibm_sherbrooke':
             backend = backend_item
     print('backend:', backend.name)
     # backend = service.least_busy(operational = True, simlulator = False)
