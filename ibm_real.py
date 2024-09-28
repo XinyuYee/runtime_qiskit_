@@ -1,7 +1,7 @@
 import numpy as np
 import qiskit
 from qiskit import QuantumCircuit, transpile
-# from qiskit_aer import AerSimulator
+from qiskit_aer import AerSimulator
 from qiskit.circuit.random import random_circuit
 import random
 import pickle
@@ -36,9 +36,9 @@ def expectation_value_fast(state_counts):
     return expectation_value
 
 if __name__ == "__main__":
-    # simulator = AerSimulator(method='matrix_product_state') 
+    simulator = AerSimulator(method='matrix_product_state') 
 
-    test_num = 10
+    test_num = 20
     train_num = 10
     num_qubits = 50
 
@@ -59,17 +59,13 @@ if __name__ == "__main__":
     circuits = []
     init_qubit = 5
     inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
-    init_data = pickle.load(open('train_init_data.pkl', 'rb'))
+    init_data = pickle.load(open('train_init_circ_new.pkl', 'rb'))
     for i in range(test_num):  #init_data.keys():
         for j in range(train_num):
             print('This is the results for circ, ', i*train_num + j)
             circ = QuantumCircuit(num_qubits)
-            # init circuit
-            inits = init_data[j]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
-            act_qubit = init_data[j]['act_qubit'] # random.sample(range(0, num_qubits), init_qubit)
-            print(act_qubit)
-            circ.compose(inits, qubits=act_qubit, inplace=True)
-            # load torr
+            init = init_data[j]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
+            circ.compose(init, qubits=range(num_qubits), inplace=True)
             circ_inver = inverse_data_cir[i]['circ']
             circ_inver.remove_final_measurements()
             appe = circ_inver.compose(circ_inver.inverse())
@@ -81,10 +77,10 @@ if __name__ == "__main__":
             # result = simulator.run(tcirc).result()
             # counts = result.get_counts()
             # ideal_ev = expectation_value_fast(counts)
-            # print(ideal_ev, init_data[i]['gt'])
+            # print(ideal_ev, init_data[j]['gt'])
 
-    # #### load test data
-    # circuits = []
+    # # #### load test data
+    # # circuits = []
     inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
     for i in range(test_num):  #init_data.keys():
         print('This is the results for circ, ', i)
@@ -149,6 +145,6 @@ if __name__ == "__main__":
             'nosiy_ev': pub_result.data.evs,
             'std_ev': pub_result.data.stds
         }
-    with open('save_dict_all_2.pkl', 'wb') as f:
+    with open('save_dict_all_final.pkl', 'wb') as f:
         pickle.dump(save_dict, f)
 
