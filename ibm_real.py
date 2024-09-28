@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # simulator = AerSimulator(method='matrix_product_state') 
 
     test_num = 10
-    train_num = 3
+    train_num = 9
     num_qubits = 50
 
     #### load train data
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
     init_data = pickle.load(open('train_init_data.pkl', 'rb'))
     for i in range(test_num):  #init_data.keys():
-        for j in range(train_num):
+        for j in range(3, 3 + train_num):
             print('This is the results for circ, ', i*train_num + j)
             circ = QuantumCircuit(num_qubits)
             # init circuit
@@ -149,6 +149,6 @@ if __name__ == "__main__":
             'nosiy_ev': pub_result.data.evs,
             'std_ev': pub_result.data.stds
         }
-    with open('save_dict_all.pkl', 'wb') as f:
+    with open('save_dict_all_2.pkl', 'wb') as f:
         pickle.dump(save_dict, f)
 
