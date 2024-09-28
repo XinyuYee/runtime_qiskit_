@@ -54,11 +54,11 @@ if __name__ == "__main__":
     #     circuits.append(circ)
     # print(circuits)
 
-    #### load train data
+    # #### load train data
     # circuits = []
     # init_qubit = 5
     # inverse_data_cir = pickle.load(open('inversed_circ_dict.pkl', 'rb'))
-    # init_data = pickle.load(open('select_train_init_data.pickle', 'rb'))
+    # init_data = pickle.load(open('train_init_data.pkl', 'rb'))
     # for i in range(test_num):  #init_data.keys():
     #     print('This is the results for circ, ', i)
     #     circ = QuantumCircuit(num_qubits)
@@ -79,13 +79,14 @@ if __name__ == "__main__":
     #     # ideal_ev = expectation_value_fast(counts)
     #     # print(ideal_ev, init_data[i]['gt'])
 
-    # #### load test data
+    #### load test data
     circuits = []
     inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
     for i in range(test_num):  #init_data.keys():
         print('This is the results for circ, ', i)
         circ = inverse_data_cir[i]['circ']
-        circ.measure_all()
+        # circ.measure_all()
+        circ.remove_final_measurements()
         circuits.append(circ)
         print(inverse_data_cir[i]['gt'])
 
@@ -97,52 +98,52 @@ if __name__ == "__main__":
     print('backend:', backend.name)
     # backend = service.least_busy(operational = True, simlulator = False)
 
-    pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
-    isa_circuits = pm.run(circuits)
-    sampler = Sampler(backend)
-    job = sampler.run(isa_circuits)
-    result = job.result()
+    # pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
+    # isa_circuits = pm.run(circuits)
+    # sampler = Sampler(backend)
+    # job = sampler.run(isa_circuits)
+    # result = job.result()
     
-    # for idx, pub_result in enumerate(result):
-    #     print(f" > Counts for pub {idx}: {pub_result.data.meas.get_counts()}")
-
-    save_dict = {}
-    for i in range(test_num):
-        pub_result = result[i]
-        # print(f" > Counts for pub {i}: {pub_result.data.meas.get_counts()}")
-        state_counts = pub_result.data.meas.get_counts()
-        nosiy_ev = expectation_value_fast(state_counts)
-        print(f" > Counts for pub {i}: {nosiy_ev}")
-        save_dict[i] = {
-            'nosiy_ev': nosiy_ev
-        }
-        # json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
-    with open('save_dict.pkl', 'wb') as f:
-        pickle.dump(save_dict, f)
-
-    # pubs = []
-    # observable = SparsePauliOp("Z" * num_qubits)
-    # # Get ISA circuits
-    # pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
-    # for qc in circuits:
-    #     isa_circuit = pm.run(qc)
-    #     isa_obs = observable.apply_layout(isa_circuit.layout)
-    #     pubs.append((isa_circuit, isa_obs))
-    
-    # estimator = Estimator(backend)
-    # job = estimator.run(pubs)
-    # job_result = job.result()
+    # # for idx, pub_result in enumerate(result):
+    # #     print(f" > Counts for pub {idx}: {pub_result.data.meas.get_counts()}")
 
     # save_dict = {}
     # for i in range(test_num):
-    #     pub_result = job_result[i]
-    #     print(f">>> Expectation values for PUB {i}: {pub_result.data.evs}")
-    #     print(f">>> Standard errors for PUB {i}: {pub_result.data.stds}")
-
+    #     pub_result = result[i]
+    #     # print(f" > Counts for pub {i}: {pub_result.data.meas.get_counts()}")
+    #     state_counts = pub_result.data.meas.get_counts()
+    #     nosiy_ev = expectation_value_fast(state_counts)
+    #     print(f" > Counts for pub {i}: {nosiy_ev}")
     #     save_dict[i] = {
-    #         'nosiy_ev': pub_result.data.evs,
-    #         'std_ev': pub_result.data.stds
+    #         'nosiy_ev': nosiy_ev
     #     }
+    #     # json.dump(save_dict, open('save_ibm_real.json', 'w'), indent = 4)
     # with open('save_dict.pkl', 'wb') as f:
     #     pickle.dump(save_dict, f)
+
+    pubs = []
+    observable = SparsePauliOp("Z" * num_qubits)
+    # Get ISA circuits
+    pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
+    for qc in circuits:
+        isa_circuit = pm.run(qc)
+        isa_obs = observable.apply_layout(isa_circuit.layout)
+        pubs.append((isa_circuit, isa_obs))
+    
+    estimator = Estimator(backend)
+    job = estimator.run(pubs)
+    job_result = job.result()
+
+    save_dict = {}
+    for i in range(test_num):
+        pub_result = job_result[i]
+        print(f">>> Expectation values for PUB {i}: {pub_result.data.evs}")
+        print(f">>> Standard errors for PUB {i}: {pub_result.data.stds}")
+
+        save_dict[i] = {
+            'nosiy_ev': pub_result.data.evs,
+            'std_ev': pub_result.data.stds
+        }
+    with open('save_dict.pkl', 'wb') as f:
+        pickle.dump(save_dict, f)
 
