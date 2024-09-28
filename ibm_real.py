@@ -38,8 +38,8 @@ def expectation_value_fast(state_counts):
 if __name__ == "__main__":
     # simulator = AerSimulator(method='matrix_product_state') 
 
-    test_num = 2
-    train_num = 2
+    test_num = 10
+    train_num = 3
     num_qubits = 50
 
     #### load train data
@@ -58,39 +58,43 @@ if __name__ == "__main__":
     #### load train data
     circuits = []
     init_qubit = 5
-    inverse_data_cir = pickle.load(open('inversed_circ_dict.pkl', 'rb'))
+    inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
     init_data = pickle.load(open('train_init_data.pkl', 'rb'))
-    for i in range(train_num):  #init_data.keys():
-        print('This is the results for circ, ', i)
-        circ = QuantumCircuit(num_qubits)
-        # init circuit
-        inits = init_data[i]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
-        act_qubit = init_data[i]['act_qubit'] # random.sample(range(0, num_qubits), init_qubit)
-        print(act_qubit)
-        circ.compose(inits, qubits=act_qubit, inplace=True)
-        # load torr
-        circ_inver = inverse_data_cir[i]['circ']
-        # circ_inver.measure_all()
-        circ.compose(circ_inver, qubits=range(num_qubits), inplace=True)
-        circuits.append(circ)
-        print(init_data[i]['gt'])
-        # tcirc = transpile(circ, simulator)
-        # result = simulator.run(tcirc).result()
-        # counts = result.get_counts()
-        # ideal_ev = expectation_value_fast(counts)
-        # print(ideal_ev, init_data[i]['gt'])
+    for i in range(test_num):  #init_data.keys():
+        for j in range(train_num):
+            print('This is the results for circ, ', i*train_num + j)
+            circ = QuantumCircuit(num_qubits)
+            # init circuit
+            inits = init_data[j]['circ']  # random_circuit(num_qubits = init_qubit, depth=1, max_operands=1)
+            act_qubit = init_data[j]['act_qubit'] # random.sample(range(0, num_qubits), init_qubit)
+            print(act_qubit)
+            circ.compose(inits, qubits=act_qubit, inplace=True)
+            # load torr
+            circ_inver = inverse_data_cir[i]['circ']
+            circ_inver.remove_final_measurements()
+            appe = circ_inver.compose(circ_inver.inverse())
+            circ.compose(appe, qubits=range(num_qubits), inplace=True)
+            circuits.append(circ)
+            print(init_data[j]['gt'])
+            # circ.measure_all()
+            # tcirc = transpile(circ, simulator)
+            # result = simulator.run(tcirc).result()
+            # counts = result.get_counts()
+            # ideal_ev = expectation_value_fast(counts)
+            # print(ideal_ev, init_data[i]['gt'])
 
     # #### load test data
     # circuits = []
-    # inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
-    # for i in range(test_num):  #init_data.keys():
-    #     print('This is the results for circ, ', i)
-    #     circ = inverse_data_cir[i]['circ']
-    #     # circ.measure_all()
-    #     circ.remove_final_measurements()
-    #     circuits.append(circ)
-    #     print(inverse_data_cir[i]['gt'])
+    inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
+    for i in range(test_num):  #init_data.keys():
+        print('This is the results for circ, ', i)
+        circ = inverse_data_cir[i]['circ']
+        # circ.measure_all()
+        circ.remove_final_measurements()
+        circuits.append(circ)
+        print(inverse_data_cir[i]['gt'])
 
+    print(len(circuits))
     # service = QiskitRuntimeService.save_account(channel="ibm_quantum", token="15ea93f9f4a982b62708546ab41827398c2968d0a3f8de673a1008e91aa1cc5313c8c24e2f8a7b0d4527a4293b8cf734bdd19adb78a15f3c22290bc4b425c012")
     service = QiskitRuntimeService(instance='ibm-q/open/main')
     for backend_item in service.backends():
@@ -145,6 +149,6 @@ if __name__ == "__main__":
             'nosiy_ev': pub_result.data.evs,
             'std_ev': pub_result.data.stds
         }
-    with open('save_dict.pkl', 'wb') as f:
+    with open('save_dict_all.pkl', 'wb') as f:
         pickle.dump(save_dict, f)
 
