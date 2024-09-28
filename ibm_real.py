@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     # #### load test data
     circuits = []
-    inverse_data_cir = pickle.load(open('new_test_data.pickle', 'rb'))
+    inverse_data_cir = pickle.load(open('new_test_data.pkl', 'rb'))
     for i in range(test_num):  #init_data.keys():
         print('This is the results for circ, ', i)
         circ = inverse_data_cir[i]['circ']
